@@ -2,22 +2,19 @@ import os
 from flask import Flask, request, jsonify
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from models import db, User
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = 'your_jwt_secret_key'
+app.config.from_object('config.Config')
 
-db.init_app(app)
-
+db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
 
 @app.route('/register', methods=['POST'])
 def register():
-    data = request.form  # Використовуємо request.form для прийому даних з форми
+    data = request.form
     username = data.get('username')
     password = data.get('password')
 
@@ -26,28 +23,24 @@ def register():
 
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-    # Створюємо каталог для зображення
-    user_image_dir = f"images/{username}"
-    os.makedirs(user_image_dir, exist_ok=True)  # Створюємо каталог, якщо його немає
+    user_image_dir = os.path.join("images", username)
+    os.makedirs(user_image_dir, exist_ok=True)
 
-    # Зберігаємо файл зображення, якщо він є
-    image_path = None  # Значення за замовчуванням для зображення
+    image_path = None
 
     if 'image' in request.files:
         image_file = request.files['image']
-        
+
         if image_file.filename != '':
-            # Зберігаємо зображення у вказаному каталозі
-            image_path = os.path.join(user_image_dir, image_file.filename)
+            safe_filename = f"{username}_image.png"
+            image_path = os.path.join(user_image_dir, safe_filename)
             image_file.save(image_path)
 
-    # Зберігаємо інформацію про користувача
     new_user = User(username=username, password=hashed_password, image=image_path)
     db.session.add(new_user)
     db.session.commit()
 
     return jsonify({"message": "User registered successfully", "image": image_path}), 201
-
 
 
 @app.route('/login', methods=['POST'])
