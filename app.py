@@ -18,7 +18,7 @@ def register():
     username = data.get('username')
     password = data.get('password')
 
-    if User.query.filter_by(username=username).first():
+    if db.User.query.filter_by(username=username).first():
         return jsonify({"message": "User already exists"}), 400
 
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -36,7 +36,7 @@ def register():
             image_path = os.path.join(user_image_dir, safe_filename)
             image_file.save(image_path)
 
-    new_user = User(username=username, password=hashed_password, image=image_path)
+    new_user = db.User(username=username, password=hashed_password, image=image_path)
     db.session.add(new_user)
     db.session.commit()
 
@@ -49,7 +49,7 @@ def login():
     username = data.get('username')
     password = data.get('password')
 
-    user = User.query.filter_by(username=username).first()
+    user = db.User.query.filter_by(username=username).first()
 
     if user and bcrypt.check_password_hash(user.password, password):
         access_token = create_access_token(identity=user.id)
@@ -61,7 +61,7 @@ def login():
 @jwt_required()
 def protected():
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.User.query.get(current_user_id)
     return jsonify(logged_in_as=user.username), 200
 
 @app.route('/')
