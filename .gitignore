@@ -3,3 +3,4 @@ images/
 instance/
 __pycache__/
 venv/
+migrations/
