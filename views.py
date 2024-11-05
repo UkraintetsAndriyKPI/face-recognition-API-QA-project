@@ -1,10 +1,14 @@
 import os
-from flask import request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from app import app, db, bcrypt
 
-@app.route('/register', methods=['POST'])
+from flask import request, jsonify
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+
+from app import app, db, bcrypt
+from flask import Blueprint
+
+auth_bp = Blueprint('auth', __name__)
+
+@auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.form
     username = data.get('username')
@@ -35,7 +39,7 @@ def register():
     return jsonify({"message": "User registered successfully", "image": image_path}), 201
 
 
-@app.route('/login', methods=['POST'])
+@auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     username = data.get('username')
@@ -49,14 +53,14 @@ def login():
 
     return jsonify({"message": "Invalid credentials"}), 401
 
-@app.route('/protected', methods=['GET'])
+@auth_bp.route('/protected', methods=['GET'])
 @jwt_required()
 def protected():
     current_user_id = get_jwt_identity()
     user = db.User.query.get(current_user_id)
     return jsonify(logged_in_as=user.username), 200
 
-@app.route('/update_image', methods=['POST'])
+@auth_bp.route('/update_image', methods=['POST'])
 @jwt_required()
 def update_image():
     current_user_id = get_jwt_identity()
@@ -88,6 +92,6 @@ def update_image():
     return jsonify({"message": "Зображення не надано"}), 400
 
 
-@app.route('/')
+@auth_bp.route('/')
 def home():
     return "Hello, Flask!"
