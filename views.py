@@ -1,7 +1,6 @@
 import os
 from flask import request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 from app import app, db, bcrypt
 
 @app.route('/register', methods=['POST'])
@@ -24,6 +23,9 @@ def register():
         image_file = request.files['image']
 
         if image_file.filename != '':
+
+            # CHECK IF IMAGE HAVE ONLY ONE FACE DETECTED ETC
+
             safe_filename = f"{username}_image.png"
             image_path = os.path.join(user_image_dir, safe_filename)
             image_file.save(image_path)
@@ -70,7 +72,7 @@ def update_image():
     if 'image' in request.files:
         image_file = request.files['image']
 
-        # CHECK IF IMAGE HAVE ONLY ONE FACE DETECTED
+        # CHECK IF IMAGE HAVE ONLY ONE FACE DETECTED ETC
 
         if image_file.filename != '':
             safe_filename = f"{user.username}_image.png"
