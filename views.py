@@ -1,5 +1,5 @@
 import os
-from face_checking.face_checking import process_face_image
+from face_checking.face_checking import process_face_image, open_image, compare_faces
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 from app import app, db, bcrypt
@@ -54,6 +54,17 @@ def login():
 
     if user and bcrypt.check_password_hash(user.password, password):
         access_token = create_access_token(identity=user.id)
+
+        if user.image and data.image:
+            image_file_request = request.files['image']
+            stored_image = open_image(user.image)
+
+            similar = compare_faces(image_file_request, stored_image)
+            if similar:
+                return jsonify(access_token=access_token), 200
+            else:
+                return jsonify({"message": "Images of faces are different"}), 401
+
         return jsonify(access_token=access_token), 200
 
     return jsonify({"message": "Invalid login data"}), 401
