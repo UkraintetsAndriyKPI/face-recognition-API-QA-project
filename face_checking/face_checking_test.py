@@ -1,7 +1,7 @@
 from unittest.mock import patch, MagicMock
 from PIL import Image
 import numpy as np
-from face_checking import face_checking
+import face_checking
 import unittest
 
 class TestFaceRecognitionModule(unittest.TestCase):
